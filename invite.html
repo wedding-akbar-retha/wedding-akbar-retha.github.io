@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+
+<body>
+	<script>
+		const title = prompt("Titel:\nKeluarga/Bapak/Ibu/Saudara/Saudari/Team");
+		const nama = prompt("Nama:");
+		const alamat = prompt("Alamat");
+		const link = location.href.replace('invite.html','') + `?to=` + nama.replaceAll(" ", "+");
+
+		fetch(`https://yusee.fly.dev/site/create-invite?s=akbarp`, {
+			headers: {
+				"content-type": "application/x-www-form-urlencoded"
+			},
+			body: `title=${title}&nama=${nama}&alamat=${alamat}`,
+			method: `post`,
+		}).then(r => r.json()).then(data => {
+			document.write(`<div style="font-size:20px">Kirim Undangan untuk <b>${title} ${nama}</b> ${alamat ? "di <b>"+alamat+"</b>" : ""}<br>melalui link berikut: <a href="${link}" target="_blank">${link}</s></div>`)
+		})
+	</script>
+</body>
