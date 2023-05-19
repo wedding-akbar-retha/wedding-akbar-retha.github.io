@@ -2191,6 +2191,7 @@ const data = {
 	window.loadNext = function() {
 		let p = data.comments_page + 1
 		let next_2_page = document.querySelector(`[page-${p + 1}]`)
+		let cui_box = document.querySelector('#cui-box')
 
 		if (next_2_page) {
 			document.querySelector(`[page-${data.comments_page}]`).style.display = 'none'
@@ -2212,7 +2213,7 @@ const data = {
 					current = document.createElement('ul')
 					current.setAttribute(`page-${p}`, true)
 					current.className = 'cui-container-comments'
-					document.querySelector('#cui-box').append(current)
+					cui_box.append(current)
 					document.querySelector(`[page-${data.comments_page}]`).style.display = 'none'
 					data.max_page++
 					data.comments_page++
@@ -2222,6 +2223,8 @@ const data = {
 				rows.map(row => addCommentEntry(row, current))
 			});
 		}
+
+		cui_box.scrollTo({top:cui_box.scrollHeight, behavior:'smooth'})
 	}
 
 	function getCurrentTimestamp() {
@@ -2284,6 +2287,9 @@ const data = {
 				document.querySelector(`[page-${data.comments_page}]`).style.display = 'none'
 				addCommentEntry({created_at, body}, page)
 				data.comments_page = data.max_page
+
+				const cui_box = document.querySelector('#cui-box')
+				cui_box.scrollTo({top:cui_box.scrollHeight, behavior:'smooth'})
 			})
 			.finally(_ => {
 				btn.disabled = false
