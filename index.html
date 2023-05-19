@@ -1203,9 +1203,14 @@ pada acara Resepsi Pernikahan putra-putri kami</h2>		</div>
         
     <div class='cui-wrap-submit cui-clearfix'><p class='form-submit'><span class="cui-hide">Do not change these fields following</span><input type="text" class="cui-hide" name="name" value="username"><input type="text" class="cui-hide" name="nombre" value=""><input type="text" class="cui-hide" name="form-cui" value=""><input type="button" class="cui-form-btn cui-cancel-btn" value="Cancel"><input name='submit' id='submit-73263' value='Send →' type='submit' /><input type='hidden' name='commentpress' value='true' /><input type='hidden' name='comment_post_ID' value='73263' id='comment_post_ID' />
 <input type='hidden' name='comment_parent' id='comment_parent' value='0' />
-</p></div></form></div></div><!--.cui-container-form--></div><!--.cui-clearfix cui-relative--></div><!--.cui-wrap-form--><div id='cui-comment-status-73263'  class='cui-comment-status'></div><div id='cui-box' class='cui-box'>
-<ul id='cui-container-comment-73263' class='cui-container-comments cui-order-DESC  cui-has-15-comments cui-multiple-comments' data-order='DESC'></ul>
-</div><div class='cui-holder-73263 cui-holder'></div></div><!--.cui-wrap-comments--></div><!--.cui-wrapper-->            <style>
+</p></div></form></div></div><!--.cui-container-form--></div><!--.cui-clearfix cui-relative--></div><!--.cui-wrap-form--><div id='cui-comment-status-73263'  class='cui-comment-status'></div>
+<div id='cui-box' class='cui-box'>
+	<ul page-1 id='cui-container-comment-73263' class='cui-container-comments cui-order-DESC  cui-has-15-comments cui-multiple-comments' data-order='DESC'></ul>
+</div>
+<div class='cui-holder-73263 cui-holder' style="text-align: center; display: none;">
+	<a onclick="loadPrev()">&lt;&lt; Sebelumnya</a> | <a onclick="loadNext()">Selanjutnya >></a>
+</div>
+</div><!--.cui-wrap-comments--></div><!--.cui-wrapper-->            <style>
                 .cui-wrapper .cui-holder {
                     display: block !important;
                 }
@@ -2023,7 +2028,6 @@ var wpformsElementorVars = {"captcha_provider":"recaptcha","recaptcha_type":"v2"
 <script>
 	
 const data = {
-	key: `akbarp`,
 
 	nama1: `Devi`,
 	nama_long1: `Devi Arianti`,
@@ -2036,7 +2040,7 @@ const data = {
 	ig2: `randi_efajar`,
 
 	date: `Minggu, 30 Juni 2020`,
-	datetime: `May 12, 2023 20:34:41`,
+	datetime: `Jun 1, 2023 20:34:41`,
 	
 	// AKAD
 	date1: `Minggu 30 Juni 2020`,
@@ -2059,6 +2063,14 @@ const data = {
 	bank_acc2: `BCA`,
 	bank_no2: `123456789`,
 	bank_name2: `Devi Arianti`,
+
+
+
+	///////////////////
+	key: `akbarp`,
+	comments_page: 1,
+	per_page: 30,
+	max_page: 1,
 };
 
 (function() {
@@ -2108,14 +2120,15 @@ const data = {
 	}
 
 	const origFetch = window.fetch
-	const _fetch = (u, o) => origFetch(`https://yusee.fly.dev${u}&s=${data.key}`, o)
+	const _fetch = (u, o={}) => {
+		return origFetch(`https://yusee.fly.dev${u}&s=${data.key}`, o).then(r => r.json())
+	}
 
-	function addCommentEntry(row) {
+	function addCommentEntry(row, page) {
 		const li = document.createElement('li')
 		li.className ="comment even thread-even depth-1 cui-item-comment";
-		document.querySelector('#cui-container-comment-73263').append(li)
-		document.querySelector('#cui-container-comment-73263').style.display = 'block' // show comments
-		document.querySelector('#cui-comment-status-73263').style.display = 'none' // hide loading
+		page.append(li)
+		page.style.display = 'block' // show comments
 
 		let date = new Date(row.created_at)
 		date.setUTCHours(date.getUTCHours() + 7)
@@ -2166,6 +2179,64 @@ const data = {
 			</div><!--.cui-comment-->`;
 	}
 
+	window.loadPrev = function() {
+		if (data.comments_page == 1) return
+		const p = data.comments_page - 1
+
+		document.querySelector(`[page-${data.comments_page}]`).style.display = 'none'
+		document.querySelector(`[page-${p}]`).style.display = 'block'
+		data.comments_page--
+	}
+
+	window.loadNext = function() {
+		let p = data.comments_page + 1
+		let next_2_page = document.querySelector(`[page-${p + 1}]`)
+
+		if (next_2_page) {
+			document.querySelector(`[page-${data.comments_page}]`).style.display = 'none'
+			document.querySelector(`[page-${p}]`).style.display = 'block'
+			data.comments_page++
+		}
+		else {
+			let current = document.querySelector(`[page-${data.comments_page}]`)
+			let next = document.querySelector(`[page-${p}]`)
+			p = (next || (current.childElementCount == data.per_page)) ? p : data.comments_page
+
+			_fetch(`/site/get-comments?page=${p}`).then(rows => {
+				if (next) {
+					document.querySelector(`[page-${data.comments_page}]`).style.display = 'none'
+					current = next;
+					data.comments_page++;
+				}
+				else if (current.childElementCount == data.per_page) {
+					current = document.createElement('ul')
+					current.setAttribute(`page-${p}`, true)
+					current.className = 'cui-container-comments'
+					document.querySelector('#cui-box').append(current)
+					document.querySelector(`[page-${data.comments_page}]`).style.display = 'none'
+					data.max_page++
+					data.comments_page++
+				}
+
+				current.innerHTML = '';
+				rows.map(row => addCommentEntry(row, current))
+			});
+		}
+	}
+
+	function getCurrentTimestamp() {
+		let date = new Date()
+		let m = date.getUTCMonth() + 1
+		let d = date.getUTCDate()
+		let h = date.getUTCHours()
+
+		if (m < 10) m = '0'+m;
+		if (d < 10) d = '0'+d;
+		if (h < 10) h = '0'+h;
+
+		return ''+ date.getFullYear() +'-'+ m +'-'+ d +'T'+ h + date.toString().slice(18,24) +'Z'
+	}
+
 	addEventListener('DOMContentLoaded', e => { setTimeout(async _=> {
 		setContents()
 
@@ -2173,7 +2244,7 @@ const data = {
 		let btn, title, alamat, nama = qs.get('to')
 
 		if (nama) {
-			const invite = await _fetch(`/site/get-invite?nama=${nama}`).then(r => r.json())
+			const invite = await _fetch(`/site/get-invite?nama=${nama}`)
 			title = invite.title || 'Bapak/Ibu/Saudara/i'
 			alamat = invite.alamat || 'Tempat'
 		}
@@ -2182,7 +2253,12 @@ const data = {
 		document.querySelector('#namatamu').innerHTML = nama
 		document.querySelector('#alamat').innerHTML = `di ${alamat}.`
 
-		_fetch('/site/get-comments?').then(r => r.json()).then(data => data.map(addCommentEntry));
+		_fetch('/site/get-comments?').then(rows => {
+			const page = document.querySelector('[page-1]')
+			document.querySelector('#cui-comment-status-73263').style.display = 'none' // hide loading
+			rows.map(row => addCommentEntry(row, page))
+			rows.length == 30 && (document.querySelector(`.cui-holder-73263`).style.display = 'block')
+		});
 
 		(btn = document.querySelector('#submit-comment')).addEventListener('click', e => {
 			e.preventDefault()
@@ -2202,16 +2278,12 @@ const data = {
 				headers: {'content-type': 'application/x-www-form-urlencoded'},
 				body: 'body='+ body, method: 'post',
 			})
-			.then(r => r.json()).then(data => {
-				let date = new Date()
-				let m = date.getUTCMonth() + 1
-				let d = date.getUTCDate()
-				let h = date.getUTCHours()
-				if (m < 10) m = '0'+m;
-				if (d < 10) d = '0'+d;
-				if (h < 10) h = '0'+h;
-				const created_at = ''+ date.getFullYear() +'-'+ m +'-'+ d +'T'+ h + date.toString().slice(18,24) +'Z'
-				addCommentEntry({created_at, body})
+			.then(entry => {
+				const created_at = getCurrentTimestamp()
+				const page = document.querySelector(`page-${data.max_page}`)
+				document.querySelector(`[page-${data.comments_page}]`).style.display = 'none'
+				addCommentEntry({created_at, body}, page)
+				data.comments_page = data.max_page
 			})
 			.finally(_ => {
 				btn.disabled = false
